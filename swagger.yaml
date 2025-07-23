@@ -7,7 +7,7 @@ info:
   contact: { email: ammuftau74@gmail.com }
 
 servers:
-  - url: https://backend-pil9.onrender.com/api/v1
+  - url: https://gbono-api.onrender.com/api/v1
     description: This is the original api URL
   - url: http://localhost:9000/api/v1
     description: This is my local Server
