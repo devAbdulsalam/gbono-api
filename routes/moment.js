@@ -13,6 +13,8 @@ import {
 const router = express.Router();
 
 router.get('/', getMoments);
+router.get('/gallery', getGalleryImages);
+router.get('/videos', getMomentVideos);
 router.post('/upload-image', upload.single('image'), uploadImage);
 router.post(
 	'/upload-images',
@@ -20,8 +22,6 @@ router.post(
 	uploadMultipleImages
 );
 router.post('/upload-video', videoUpload.single('video'), uploadVideo);
-router.post('/upload-combo', upload.array('files'), uploadMultipleMoments);
-router.get('/gallery', getGalleryImages);
-router.get('/videos', getMomentVideos);
+router.post('/uploads', upload.array('files'), uploadMultipleMoments);
 
 export default router;
