@@ -79,6 +79,16 @@ async function uploadVideoToYouTube(buffer, filename) {
 export const uploadImage = async (req, res) => {
 	const { caption } = req.body;
 	try {
+		if (!req.file) {
+			return res
+				.status(400)
+				.json({ message: 'Image and caption are required' });
+		}
+		if (!caption) {
+			await fs.unlinkSync(req.file.path);
+			return res.status(400).json({ message: 'Caption is required' });
+		}
+
 		const result = await cloudinary.uploader.upload(req.file.path, {
 			folder: 'moments',
 		});
@@ -94,11 +104,13 @@ export const uploadImage = async (req, res) => {
 
 		res.status(201).json({ moment });
 	} catch (error) {
+		if (req.file) {
+			fs.unlinkSync(req.file.path);
+		}
 		console.error('Error fetching moments:', error);
 		res.status(500).json({ message: 'Failed to fetch moments', error });
 	}
 };
-
 
 // http://localhost:9000/api/v1/moments?page=1&limit=5&search=party&type=image&date=2025-07-20&all=true
 
@@ -166,6 +178,16 @@ export const uploadVideo = async (req, res) => {
 	const { caption } = req.body;
 	const filePath = req.file.path;
 	try {
+		if (!req.file) {
+			return res
+				.status(400)
+				.json({ message: 'Video and caption are required' });
+		}
+		if (!caption) {
+			await fs.unlinkSync(req.file.path);
+			return res.status(400).json({ message: 'Caption is required' });
+		}
+		console.log('Uploading video to YouTube:', filePath);
 		const videoResponse = await youtube.videos.insert({
 			part: 'snippet,status',
 			requestBody: {
@@ -182,6 +204,7 @@ export const uploadVideo = async (req, res) => {
 			},
 		});
 
+		console.log('videoResponse:', videoResponse);
 		const videoId = videoResponse.data.id;
 
 		const moment = await Moment.create({
@@ -194,6 +217,9 @@ export const uploadVideo = async (req, res) => {
 
 		res.status(201).json({ moment });
 	} catch (error) {
+		if (req.file) {
+			fs.unlinkSync(req.file.path);
+		}
 		console.error('Error fetching moments:', error);
 		res.status(500).json({ message: 'Failed to fetch moments', error });
 	}
@@ -278,6 +304,11 @@ export const uploadMultipleMoments = async (req, res) => {
 
 		res.status(201).json({ success: true, data: results });
 	} catch (err) {
+		if (req.files) {
+			req.files.forEach((file) => {
+				fs.unlinkSync(file.path);
+			});
+		}
 		console.error('Upload error:', err);
 		res.status(500).json({ success: false, message: 'Upload failed' });
 	}
@@ -315,12 +346,18 @@ export const uploadMultipleImages = async (req, res) => {
 		});
 	} catch (error) {
 		console.error('Upload error:', error);
+		// Clean up any uploaded files
+		if (req.files) {
+			req.files.forEach((file) => {
+				fs.unlinkSync(file.path);
+			});
+		}
 		return res
 			.status(500)
 			.json({ message: 'Image upload failed.', error: error.message });
 	}
 };
 
-// indepent student
+// independent student
 // leaderbooard for school
 // streak

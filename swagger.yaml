@@ -398,7 +398,7 @@ paths:
             schema:
               type: object
               properties:
-                image:
+                video:
                   description: File
                   type: string
                   format: binary
@@ -477,14 +477,12 @@ paths:
             schema:
               type: object
               properties:
-                image:
-                  description: File
-                  type: string
-                  format: binary
-                video:
-                  description: File
-                  type: string
-                  format: binary
+                files:
+                  type: array
+                  items:
+                    description: File
+                    type: string
+                    format: binary
                 caption:
                   type: string
                   example: hello world

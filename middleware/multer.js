@@ -64,6 +64,7 @@ const upload = multer({
 });
 
 const videoFileFilter = (req, file, cb) => {
+	// console.log('Video file filter:', file.originalname);
 	const ext = path.extname(file.originalname).toLowerCase();
 	if (ext !== '.mp4' && ext !== '.mov' && ext !== '.avi' && ext !== '.mkv') {
 		return cb(
