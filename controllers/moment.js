@@ -207,7 +207,7 @@ export const uploadVideo = async (req, res) => {
 			},
 		});
 
-		console.log('videoResponse:', videoResponse);
+		// console.log('videoResponse:', videoResponse);
 		const videoId = videoResponse.data.id;
 
 		const moment = await Moment.create({
@@ -263,6 +263,7 @@ export const uploadMultipleMoments = async (req, res) => {
 		for (const file of files) {
 			const ext = file.mimetype;
 
+			console.log('Uploading video to YouTube file:', file);
 			if (ext.startsWith('image/')) {
 				const streamUpload = () =>
 					new Promise((resolve, reject) => {
@@ -289,6 +290,8 @@ export const uploadMultipleMoments = async (req, res) => {
 			}
 
 			if (ext.startsWith('video/')) {
+				console.log('Uploading video to YouTube file:', file);
+				console.log('Uploading video to YouTube:', file.buffer);
 				// TODO: Validate duration < 1 min
 				const youtubeRes = await uploadVideoToYouTube(
 					file.buffer,
