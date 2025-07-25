@@ -19,6 +19,7 @@ import YAML from 'yaml';
 // import adminRoutes from './routes/admin/index.js';
 import userRoutes from './routes/user.js';
 import momentRoutes from './routes/moment.js';
+import indexRoutes from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // setups
@@ -82,6 +83,7 @@ app.use(passport.session()); // persistent login sessions
 
 /* ROUTES */
 // app.use('/api/v1/admins', adminRoutes);
+app.use('/', indexRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/moments', momentRoutes);
 

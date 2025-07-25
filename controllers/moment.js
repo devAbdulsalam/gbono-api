@@ -35,6 +35,9 @@ cloudinary.config({
  * @param {string} filename - The original filename
  * @returns {Promise<{ url: string, thumbnail: string }>}
  */
+
+
+
 async function uploadVideoToYouTube(buffer, filename) {
 	try {
 		const fileStream = Readable.from(buffer);
@@ -44,8 +47,8 @@ async function uploadVideoToYouTube(buffer, filename) {
 			requestBody: {
 				snippet: {
 					title: `Moment - ${filename}`,
-					description: 'Uploaded from the XtateHub Moments app',
-					tags: ['moment', 'xtatehub', 'upload'],
+					description: 'Uploaded from the gbono Moments app',
+					tags: ['moment', 'gbono', 'upload'],
 				},
 				status: {
 					privacyStatus: 'public', // or 'unlisted'
@@ -55,7 +58,7 @@ async function uploadVideoToYouTube(buffer, filename) {
 				body: fileStream,
 			},
 		});
-
+		console.log('YouTube upload response:', res.data);
 		const videoId = res.data.id;
 
 		// Get video info for URL + thumbnail
