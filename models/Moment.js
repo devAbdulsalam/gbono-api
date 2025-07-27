@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const momentSchema = new mongoose.Schema({
-	// userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+	userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 	type: { type: String, enum: ['image', 'video'], required: true },
 	caption: String,
 	mediaUrl: String, // Cloudinary URL or YouTube video URL
@@ -15,6 +15,6 @@ const momentSchema = new mongoose.Schema({
 		default: 'approved',
 	},
 });
-  
+
 const Moment = mongoose.model('Moment', momentSchema);
 export default Moment;

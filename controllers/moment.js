@@ -1,4 +1,5 @@
 import Moment from '../models/Moment.js';
+import User from '../models/User.js';
 import { google } from 'googleapis';
 import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
@@ -36,14 +37,12 @@ cloudinary.config({
  * @returns {Promise<{ url: string, thumbnail: string }>}
  */
 
-
-
-async function uploadVideoToYouTube(buffer, filename) {
+async function uploadVideoToYouTube(filePath, filename) {
 	try {
-		const fileStream = Readable.from(buffer);
+		const fileStream = fs.createReadStream(filePath);
 
 		const res = await youtube.videos.insert({
-			part: ['snippet', 'status'],
+			part: 'snippet,status',
 			requestBody: {
 				snippet: {
 					title: `Moment - ${filename}`,
@@ -58,20 +57,12 @@ async function uploadVideoToYouTube(buffer, filename) {
 				body: fileStream,
 			},
 		});
-		console.log('YouTube upload response:', res.data);
+		// console.log('YouTube upload response:', res.data);
 		const videoId = res.data.id;
-
-		// Get video info for URL + thumbnail
-		const videoDetails = await youtube.videos.list({
-			part: ['snippet'],
-			id: [videoId],
-		});
-
-		const snippet = videoDetails.data.items[0].snippet;
-
+		const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 		return {
-			url: `https://www.youtube.com/watch?v=${videoId}`,
-			thumbnail: snippet.thumbnails.default.url,
+			url: videoUrl,
+			thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`, // High quality thumbnail
 		};
 	} catch (error) {
 		console.error('YouTube upload failed:', error);
@@ -81,6 +72,7 @@ async function uploadVideoToYouTube(buffer, filename) {
 
 export const uploadImage = async (req, res) => {
 	const { caption } = req.body;
+	let userId = req?.user?._id; // if authenticated
 	try {
 		if (!req.file) {
 			return res
@@ -92,13 +84,22 @@ export const uploadImage = async (req, res) => {
 			return res.status(400).json({ message: 'Caption is required' });
 		}
 
+		const user = await User.create({
+			name: req.body.name || 'Anonymous',
+			email: req.body.email || '',
+			password: req.body.password || '123456',
+		});
+
+		userId = user._id;
+
 		const result = await cloudinary.uploader.upload(req.file.path, {
 			folder: 'moments',
 		});
 
-		console.log('Image upload result:', result);
+		// console.log('Image upload result:', result);
 
 		const moment = await Moment.create({
+			userId,
 			type: 'image',
 			caption,
 			mediaUrl: result.secure_url,
@@ -180,6 +181,7 @@ export const getMoments = async (req, res) => {
 export const uploadVideo = async (req, res) => {
 	const { caption } = req.body;
 	const filePath = req.file.path;
+	let userId = req?.user?._id; // if authenticated
 	try {
 		if (!req.file) {
 			return res
@@ -190,7 +192,15 @@ export const uploadVideo = async (req, res) => {
 			await fs.unlinkSync(req.file.path);
 			return res.status(400).json({ message: 'Caption is required' });
 		}
-		console.log('Uploading video to YouTube:', filePath);
+
+		const user = await User.create({
+			name: req.body.name || 'Anonymous',
+			email: req.body.email || '',
+			password: req.body.password || '123456',
+		});
+
+		userId = user._id;
+		// console.log('Uploading video to YouTube:', filePath);
 		const videoResponse = await youtube.videos.insert({
 			part: 'snippet,status',
 			requestBody: {
@@ -211,13 +221,13 @@ export const uploadVideo = async (req, res) => {
 		const videoId = videoResponse.data.id;
 
 		const moment = await Moment.create({
-			userId: req?.user?._id,
+			userId,
 			type: 'video',
 			caption,
 			mediaUrl: `https://www.youtube.com/watch?v=${videoId}`,
 			youtubeVideoId: videoId,
 		});
-
+		fs.unlinkSync(req.file.path);
 		res.status(201).json({ moment });
 	} catch (error) {
 		if (req.file) {
@@ -257,46 +267,56 @@ export const getMomentVideos = async (req, res) => {
 export const uploadMultipleMoments = async (req, res) => {
 	try {
 		const files = req.files;
-		const userId = req?.user?._id; // if authenticated
+		let userId = req?.user?._id; // if authenticated
 		const results = [];
 
+		if (!files || files.length === 0) {
+			return res
+				.status(400)
+				.json({ success: false, message: 'No files uploaded' });
+		}
+		if (!req.body.caption) {
+			files.forEach((file) => {
+				fs.unlinkSync(file.path);
+			});
+			return res
+				.status(400)
+				.json({ success: false, message: 'Caption is required' });
+		}
+
+		const user = await User.create({
+			name: req.body.name || 'Anonymous',
+			email: req.body.email || '',
+			password: req.body.password || '123456',
+		});
+
+		userId = user._id;
 		for (const file of files) {
 			const ext = file.mimetype;
 
-			console.log('Uploading video to YouTube file:', file);
 			if (ext.startsWith('image/')) {
-				const streamUpload = () =>
-					new Promise((resolve, reject) => {
-						const stream = cloudinary.uploader.upload_stream(
-							{ folder: 'moments/images' },
-							(error, result) => {
-								if (result) resolve(result);
-								else reject(error);
-							}
-						);
-						streamifier.createReadStream(file.buffer).pipe(stream);
-					});
-
-				const cloudRes = await streamUpload();
-
+				const result = await cloudinary.uploader.upload(file.path, {
+					folder: 'moments',
+					resource_type: 'image',
+				});
 				const saved = await Moment.create({
 					userId,
 					type: 'image',
 					caption: req.body.caption || '',
-					mediaUrl: cloudRes.secure_url,
+					mediaUrl: result.secure_url,
+					cloudinaryId: result.public_id,
 				});
 
 				results.push(saved);
 			}
 
 			if (ext.startsWith('video/')) {
-				console.log('Uploading video to YouTube file:', file);
-				console.log('Uploading video to YouTube:', file.buffer);
 				// TODO: Validate duration < 1 min
 				const youtubeRes = await uploadVideoToYouTube(
-					file.buffer,
+					file.path,
 					file.originalname
 				);
+				console.log('YouTube upload response:', youtubeRes);
 				const saved = await Moment.create({
 					userId,
 					type: 'video',
@@ -307,7 +327,11 @@ export const uploadMultipleMoments = async (req, res) => {
 				results.push(saved);
 			}
 		}
-
+		if (req.files) {
+			req.files.forEach((file) => {
+				fs.unlinkSync(file.path);
+			});
+		}
 		res.status(201).json({ success: true, data: results });
 	} catch (err) {
 		if (req.files) {
@@ -325,10 +349,24 @@ export const uploadMultipleImages = async (req, res) => {
 		if (!req.files || req.files.length === 0) {
 			return res.status(400).json({ message: 'No images uploaded.' });
 		}
+		if (!caption) {
+			req.files.forEach((file) => {
+				fs.unlinkSync(file.path);
+			});
+			return res.status(400).json({ message: 'Caption is required.' });
+		}
 
+		let userId = user._id;
 		const { caption } = req.body;
 		const uploadedUrls = [];
 		const moments = [];
+
+		const user = await User.create({
+			name: req.body.name || 'Anonymous',
+			email: req.body.email || '',
+			password: req.body.password || '123456',
+		});
+		userId = user._id;
 
 		for (const file of req.files) {
 			const result = await cloudinary.uploader.upload(file.path, {
@@ -338,6 +376,7 @@ export const uploadMultipleImages = async (req, res) => {
 			uploadedUrls.push(result);
 
 			const moment = await Moment.create({
+				userId,
 				type: 'image',
 				caption,
 				mediaUrl: result.secure_url,
@@ -345,7 +384,11 @@ export const uploadMultipleImages = async (req, res) => {
 			});
 			moments.push(moment);
 		}
-
+		if (req.files) {
+			req.files.forEach((file) => {
+				fs.unlinkSync(file.path);
+			});
+		}
 		return res.status(201).json({
 			message: 'Images uploaded successfully.',
 			moments,
