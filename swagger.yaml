@@ -238,6 +238,12 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
+                  example: jame john
+                email:
+                  type: string
+                  example: abc@gmail.com
                 image:
                   description: File
                   type: string
@@ -317,6 +323,12 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
+                  example: jame john
+                email:
+                  type: string
+                  example: abc@gmail.com
                 images:
                   type: array
                   items:
@@ -398,6 +410,12 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
+                  example: jame john
+                email:
+                  type: string
+                  example: abc@gmail.com
                 video:
                   description: File
                   type: string
@@ -477,6 +495,12 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
+                  example: jame john
+                email:
+                  type: string
+                  example: abc@gmail.com
                 files:
                   type: array
                   items:
@@ -486,12 +510,6 @@ paths:
                 caption:
                   type: string
                   example: hello world
-                name:
-                  type: string
-                  example: jame john
-                email:
-                  type: string
-                  example: abc@gmail.com
       responses:
         '200':
           description: Upload multiple moment
