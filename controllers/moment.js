@@ -349,6 +349,8 @@ export const uploadMultipleImages = async (req, res) => {
 		if (!req.files || req.files.length === 0) {
 			return res.status(400).json({ message: 'No images uploaded.' });
 		}
+		let userId = user._id;
+		const { caption } = req.body;
 		if (!caption) {
 			req.files.forEach((file) => {
 				fs.unlinkSync(file.path);
@@ -356,8 +358,6 @@ export const uploadMultipleImages = async (req, res) => {
 			return res.status(400).json({ message: 'Caption is required.' });
 		}
 
-		let userId = user._id;
-		const { caption } = req.body;
 		const uploadedUrls = [];
 		const moments = [];
 
