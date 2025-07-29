@@ -84,13 +84,15 @@ export const uploadImage = async (req, res) => {
 			return res.status(400).json({ message: 'Caption is required' });
 		}
 
-		const user = await User.create({
-			name: req.body.name || 'Anonymous',
-			email: req.body.email || '',
-			password: req.body.password || '123456',
-		});
+		if (!userId) {
+			const user = await User.create({
+				name: req.body.name || 'Anonymous',
+				email: req.body.email || '',
+				password: req.body.password || '123456',
+			});
 
-		userId = user._id;
+			userId = user._id;
+		}
 
 		const result = await cloudinary.uploader.upload(req.file.path, {
 			folder: 'moments',
@@ -193,13 +195,15 @@ export const uploadVideo = async (req, res) => {
 			return res.status(400).json({ message: 'Caption is required' });
 		}
 
-		const user = await User.create({
-			name: req.body.name || 'Anonymous',
-			email: req.body.email || '',
-			password: req.body.password || '123456',
-		});
+		if (!userId) {
+			const user = await User.create({
+				name: req.body.name || 'Anonymous',
+				email: req.body.email || '',
+				password: req.body.password || '123456',
+			});
 
-		userId = user._id;
+			userId = user._id;
+		}
 		// console.log('Uploading video to YouTube:', filePath);
 		const videoResponse = await youtube.videos.insert({
 			part: 'snippet,status',
@@ -284,13 +288,15 @@ export const uploadMultipleMoments = async (req, res) => {
 				.json({ success: false, message: 'Caption is required' });
 		}
 
-		const user = await User.create({
-			name: req.body.name || 'Anonymous',
-			email: req.body.email || '',
-			password: req.body.password || '123456',
-		});
+		if (!userId) {
+			const user = await User.create({
+				name: req.body.name || 'Anonymous',
+				email: req.body.email || '',
+				password: req.body.password || '123456',
+			});
 
-		userId = user._id;
+			userId = user._id;
+		}
 		for (const file of files) {
 			const ext = file.mimetype;
 
@@ -349,7 +355,7 @@ export const uploadMultipleImages = async (req, res) => {
 		if (!req.files || req.files.length === 0) {
 			return res.status(400).json({ message: 'No images uploaded.' });
 		}
-		let userId = user._id;
+		let userId = req?.user?._id;
 		const { caption } = req.body;
 		if (!caption) {
 			req.files.forEach((file) => {
@@ -361,12 +367,15 @@ export const uploadMultipleImages = async (req, res) => {
 		const uploadedUrls = [];
 		const moments = [];
 
-		const user = await User.create({
-			name: req.body.name || 'Anonymous',
-			email: req.body.email || '',
-			password: req.body.password || '123456',
-		});
-		userId = user._id;
+		if (!userId) {
+			const user = await User.create({
+				name: req.body.name || 'Anonymous',
+				email: req.body.email || '',
+				password: req.body.password || '123456',
+			});
+
+			userId = user._id;
+		}
 
 		for (const file of req.files) {
 			const result = await cloudinary.uploader.upload(file.path, {
