@@ -245,12 +245,53 @@ export const uploadVideo = async (req, res) => {
 // 📸 GET /api/moments/gallery
 export const getGalleryImages = async (req, res) => {
 	try {
-		const images = await Moment.find({
-			type: 'image',
-			status: 'approved',
-		}).sort({ createdAt: -1 });
-		res.status(200).json({ success: true, data: images });
-	} catch (err) {
+		const {
+			page = 1,
+			limit = 10,
+			search = '',
+			date,
+			all = false, // admin-only: if true, bypass 'approved' filter
+		} = req.query;
+
+		const query = {};
+
+		// Admin-level access: only allow if user is admin
+		const isAdmin = req.user && req.user.role === 'admin';
+
+		// Only approved moments unless admin explicitly requests all
+		if (!(all === 'true' && isAdmin)) {
+			query.status = 'approved';
+		}
+
+		// Filter by caption (case-insensitive)
+		if (search) {
+			query.caption = { $regex: search, $options: 'i' };
+		}
+		const type = 'image'; // Only images for gallery
+		query.type = type;
+		// Filter by creation date (YYYY-MM-DD)
+		if (date) {
+			const start = new Date(date);
+			const end = new Date(date);
+			end.setHours(23, 59, 59, 999);
+			query.createdAt = { $gte: start, $lte: end };
+		}
+
+		const moments = await Moment.find(query)
+			.sort({ createdAt: -1 })
+			.skip((page - 1) * limit)
+			.limit(parseInt(limit));
+
+		const total = await Moment.countDocuments(query);
+
+		res.status(200).json({
+			data: moments,
+			currentPage: parseInt(page),
+			totalPages: Math.ceil(total / limit),
+			totalItems: total,
+		});
+	} catch (error) {
+		console.error('Error fetching moments:', error);
 		res.status(500).json({ success: false, message: 'Error fetching images' });
 	}
 };

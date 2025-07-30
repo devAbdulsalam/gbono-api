@@ -118,6 +118,29 @@ paths:
       description: >-
         The API endpoint retrieves all moment images.
       operationId: getmomemtimages
+      parameters:
+        - name: search
+          in: query
+          description: Search by caption.
+          schema:
+            type: string
+            example: Hello
+        - name: date
+          in: query
+          description: Search by date.
+          schema:
+            type: string
+            example: 2025-07-24
+        - name: page
+          in: query
+          schema:
+            type: string
+            example: '1'
+        - name: limit
+          in: query
+          schema:
+            type: string
+            example: '10'
       responses:
         '200':
           description: Get moment Images
