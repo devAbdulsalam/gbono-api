@@ -65,6 +65,8 @@ app.use(
 			'http://localhost:3000',
 			'http://localhost:8080',
 			'http://localhost:5173',
+			'http://www.iamgbono.com',
+			'https://www.iamgbono.com',
 		],
 		credentials: true,
 	})
