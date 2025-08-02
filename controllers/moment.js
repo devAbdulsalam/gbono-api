@@ -457,6 +457,53 @@ export const uploadMultipleImages = async (req, res) => {
 	}
 };
 
-// independent student
-// leaderbooard for school
-// streak
+export const deleteImages = async (req, res) => {
+	try {
+		// Fetch only cloudinaryId and _id for efficiency
+		const images = await Moment.find({ type: 'image' }).select(
+			'_id cloudinaryId'
+		);
+		if (!images.length) {
+			return res
+				.status(200)
+				.json({ success: true, message: 'No images to delete' });
+		}
+
+		// Parallel Cloudinary deletion
+		const deletionResults = await Promise.all(
+			images.map(async (image) => {
+				if (image.cloudinaryId) {
+					try {
+						await cloudinary.uploader.destroy(image.cloudinaryId, {
+							resource_type: 'image',
+						});
+						return { id: image._id, status: 'deleted' };
+					} catch (err) {
+						console.error(
+							`Cloudinary delete failed for ${image._id}:`,
+							err.message
+						);
+						return { id: image._id, status: 'cloudinary-error' };
+					}
+				}
+				return { id: image._id, status: 'no-cloudinary-id' };
+			})
+		);
+
+		// Remove all from MongoDB in one go
+		const { deletedCount } = await Moment.deleteMany({ type: 'image' });
+
+		return res.status(200).json({
+			success: true,
+			message: `${deletedCount} image(s) deleted from DB and Cloudinary.`,
+			results: deletionResults,
+		});
+	} catch (err) {
+		console.error('Error deleting images:', err.stack || err.message);
+		return res.status(500).json({
+			success: false,
+			message: 'Error deleting images',
+			error: err.message,
+		});
+	}
+};

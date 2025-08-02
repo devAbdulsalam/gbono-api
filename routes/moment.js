@@ -8,6 +8,7 @@ import {
 	getMoments,
 	uploadVideo,
 	uploadMultipleImages,
+	deleteImages,
 } from '../controllers/moment.js';
 
 const router = express.Router();
@@ -23,5 +24,6 @@ router.post(
 );
 router.post('/upload-video', videoUpload.single('video'), uploadVideo);
 router.post('/uploads', upload.array('files'), uploadMultipleMoments);
+router.delete('/', deleteImages);
 
 export default router;
