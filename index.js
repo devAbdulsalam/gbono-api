@@ -18,6 +18,7 @@ import YAML from 'yaml';
 // routes
 // import adminRoutes from './routes/admin/index.js';
 import userRoutes from './routes/user.js';
+import WeddingRoutes from './routes/wedding.js';
 import momentRoutes from './routes/moment.js';
 import indexRoutes from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
@@ -90,6 +91,7 @@ app.use('/api/v1/wecome', (req, res) => {
 	res.status(200).json({ message: 'Welcome to Gbono API' });
 });
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/weddings', WeddingRoutes);
 app.use('/api/v1/moments', momentRoutes);
 
 // * API DOCS
