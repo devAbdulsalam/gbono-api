@@ -25,6 +25,6 @@ router.post(
 );
 router.post('/upload-video', videoUpload.single('video'), uploadVideo);
 router.post('/uploads', upload.array('files'), uploadMultipleWeddings);
-router.delete('/', requireAuth, verifyPermission(["ADMIN"]), deleteImages);
+router.delete('/', requireAuth, verifyPermission(['ADMIN']), deleteImages);
 
 export default router;

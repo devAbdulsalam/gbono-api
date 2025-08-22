@@ -110,10 +110,11 @@ paths:
                   success:
                     type: boolean
                     example: true
+
     delete:
       tags:
         - 🔄 General
-      summary: Get moments
+      summary: delete moments
       description: >-
         The API endpoint retrieves delete all moments images.
       operationId: deleteImages
@@ -166,7 +167,7 @@ paths:
                   success:
                     type: boolean
                     example: true
-  
+
   /moments/gallery:
     get:
       tags:
@@ -735,6 +736,62 @@ paths:
                   success:
                     type: boolean
                     example: true
+    delete:
+      tags:
+        - 🔄 General
+      summary: Delete wedding images
+      description: >-
+        The API endpoint  delete all wedding images.
+      operationId: deleteWeddingImages
+      responses:
+        '200':
+          description: Delete wedding Images
+          headers:
+            Access-Control-Allow-Credentials:
+              schema:
+                type: string
+                example: 'true'
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Content-Length:
+              schema:
+                type: string
+                example: '1126'
+            Date:
+              schema:
+                type: string
+                example: Thu, 01 Jun 2023 05:44:27 GMT
+            ETag:
+              schema:
+                type: string
+                example: W/"466-tNv1SNtB6cuxJH2yZW7lrDnlA34"
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                  message:
+                    type: string
+                    example: Wedding images deleted successfully
+                  success:
+                    type: boolean
+                    example: true
   /weddings/upload-image:
     post:
       tags:
@@ -906,7 +963,8 @@ paths:
                     type: object
                   message:
                     type: string
-                    example: wedding images uploaded successfully    
+                    example: wedding images uploaded successfully
+
   tags:
     - name: 🔐 Authentication
       description: >-
