@@ -68,8 +68,9 @@ app.use(
 			'http://localhost:5173',
 			'http://www.iamgbono.com',
 			'https://www.iamgbono.com',
-			'https://hnforever.com.ng/',
-			'*'
+			'https://hnforever.com.ng',
+			'http://hnforever.com.ng',
+			'*',
 		],
 		credentials: true,
 	})
